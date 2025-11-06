@@ -1,47 +1,48 @@
-import math
-import random
+import numpy as np
 
 class game2048:
-    def __init__(self):
-        self.board_size = 4
+    def __init__(self, board_size: int = 4, seed: int | None = None):
+        self.board_size = board_size
         self.score = 0
-        self.board = [[0] * 4 for _ in range(4)]
+        self.board = np.zeros((board_size, board_size), dtype=np.int16)
         self.game_over = False
 
         # likelihood of spawning each num
         self.two_percentage = 0.9
         self.four_percentage = 0.1
 
-        # game starts with 2 tiles on board
-        self.add_tile()
-        self.add_tile()
+        # RNG for reproducibility and batching compatibility
+        self.rng = np.random.default_rng(seed)
+
+        # start with 2 tiles on board
+        self.spawn_tile()
+        self.spawn_tile()
 
     def display_board(self):
         for i in range(self.board_size):
-            if i % self.board_size == 0 and i != 0:
-                print()
             print(self.board[i])
 
-    def add_tile(self):
-        if random.random() < self.two_percentage:
-            tile_val = 2
-        else:
-            tile_val = 4
+    def reset(self, seed: int | None = None):
+        if seed is not None:
+            self.rng = np.random.default_rng(seed)
+        self.board.fill(0)
+        self.score = 0
+        self.game_over = False
+        self.spawn_tile()
+        self.spawn_tile()
+        return self.board.copy()
 
-        # Find an empty spot on the board
-        # empty_spots = [(row, col) for row in range(self.board_size) for col in range(self.board_size) if self.board[row][col] == 0]
-        # if empty_spots:
-        #     row, col = random.choice(empty_spots)
-        #     self.board[row][col] = tile_val
+    def spawn_tile(self) -> bool:
+        # choose 2 with prob two_percentage else 4
+        tile_val = 2 if self.rng.random() < self.two_percentage else 4
 
-        row = random.randint(0, self.board_size - 1)
-        col = random.randint(0, self.board_size - 1)
-
-        while self.board[row][col] != 0:
-            row = random.randint(0, self.board_size - 1)
-            col = random.randint(0, self.board_size - 1)
-            
-        self.board[row][col] = tile_val
+        empty = np.argwhere(self.board == 0)
+        if empty.size == 0:
+            return False
+        idx = self.rng.integers(0, len(empty))
+        r, c = empty[idx]
+        self.board[r, c] = tile_val
+        return True
 
     def move(self, direction):
         pass  # Movement logic to be implemented, remember to update score
