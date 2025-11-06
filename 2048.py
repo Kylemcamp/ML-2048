@@ -29,10 +29,25 @@ class game2048:
             tile_val = 4
 
         # Find an empty spot on the board
-        empty_spots = [(row, col) for row in range(self.board_size) for col in range(self.board_size) if self.board[row][col] == 0]
-        if empty_spots:
-            row, col = random.choice(empty_spots)
-            self.board[row][col] = tile_val
+        # empty_spots = [(row, col) for row in range(self.board_size) for col in range(self.board_size) if self.board[row][col] == 0]
+        # if empty_spots:
+        #     row, col = random.choice(empty_spots)
+        #     self.board[row][col] = tile_val
+
+        row = random.randint(0, self.board_size - 1)
+        col = random.randint(0, self.board_size - 1)
+
+        while self.board[row][col] != 0:
+            row = random.randint(0, self.board_size - 1)
+            col = random.randint(0, self.board_size - 1)
+            
+        self.board[row][col] = tile_val
+
+    def move(self, direction):
+        pass  # Movement logic to be implemented, remember to update score
+
+    def game_over(self):
+        pass  # Game over logic to be implemented
 
 def main():
     game = game2048()
