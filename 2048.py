@@ -21,9 +21,13 @@ class game2048:
         self.spawn_tile()
         self.spawn_tile()
 
-    def display_board(self):
+    def display_board(self, min_width: int = 2):
+        # Compute dynamic width so columns stay aligned as tiles grow
+        max_val = int(self.board.max()) if self.board.size else 0
+        width = max(min_width, len(str(max_val)))
         for i in range(self.board_size):
-            print(self.board[i])
+            row_str = " ".join(f"{int(v):{width}d}" for v in self.board[i])
+            print(f"[{row_str}]")
         print(f"Score: {self.score}\n")
 
     def reset(self, seed: int | None = None):
@@ -139,28 +143,17 @@ class game2048:
 
 def main():
     game = game2048()
-    game.board = np.array([[0, 0, 0, 0],
-                           [0, 0, 0, 2],
-                           [0, 0, 0, 2],
-                           [2, 2, 2, 8]])
 
     while not game.game_over:
         game.display_board()
         move = input("Enter move: ")
+        temp_board = game.board.copy()
         game.move(move)
+        if np.array_equal(temp_board, game.board):
+            print("Invalid move. Try again.")
+            continue
         game.check_game_over()
         game.spawn_tile()
-
-        # [0 0 0 0]
-        # [0 0 0 2]
-        # [0 0 0 2]
-        # [2 2 2 8]
-
-        # move: d (right)
-        # [0 0 0 0]
-        # [0 2 0 2]
-        # [0 0 0 2]
-        # [0 4 2 8]
 
 if __name__ == "__main__":
     main()
