@@ -19,7 +19,8 @@ class game2048:
 
         # start with 2 tiles on board
         self.spawn_tile()
-        self.spawn_tile()
+
+        self.valid_moves = ['w', 'a', 's', 'd']
 
     def display_board(self, min_width: int = 2):
         # Compute dynamic width so columns stay aligned as tiles grow
@@ -45,18 +46,34 @@ class game2048:
         tile_val = 2 if self.rng.random() < self.two_percentage else 4
 
         empty = np.argwhere(self.board == 0)
+        if len(empty) == 0:
+            return  # no empty space to spawn a tile
         
         idx = self.rng.integers(0, len(empty))
         r, c = empty[idx]
         self.board[r, c] = tile_val
     
     def check_game_over(self):
+        found = False
+
         if 0 in self.board:
             self.game_over = False
-        elif np.any(self.board[:-1, :] == self.board[1:, :]) or np.any(self.board[:, :-1] == self.board[:, 1:]):
-            # check adjacent tiles for matches
-            self.game_over = False 
+            self.valid_moves = ['w', 'a', 's', 'd']
+            found = True
         else:
+            if np.any(self.board[:-1, :] == self.board[1:, :]):
+                # check up/down adjacent tiles for matches
+                self.valid_moves = ['w', 's']
+                self.game_over = False
+                found = True
+                
+            if np.any(self.board[:, :-1] == self.board[:, 1:]):
+                # check left right adjacent tiles for matches
+                self.valid_moves = ['a', 'd']
+                self.game_over = False 
+                found = True
+
+        if not found: 
             self.game_over = True  # game is over
 
     def move(self, direction):
@@ -81,9 +98,6 @@ class game2048:
             raise ValueError("Invalid direction")
 
         self.score += score
-
-    def game_over(self):
-        print("GAME OVER")
 
     def merge_right(self):
         score = 0
@@ -141,19 +155,27 @@ class game2048:
         idx = np.argsort(self.board != 0, axis=0, kind='stable')
         self.board = np.take_along_axis(self.board, idx, axis=0)
 
-def main():
-    game = game2048()
+    def handle_other_input(self):
+        move = input("")
+        print("\b" * len(move))
+        return move
 
+def main():
+
+    game = game2048()
+#     game.board = np.array([[  4,   0,   2,   8],
+# [  2,   4,   8,  32],
+# [  8,  16, 128,   8],
+# [ 16,   4,  32,  16]])
+    
     while not game.game_over:
+        game.spawn_tile()
         game.display_board()
         move = input("Enter move: ")
-        temp_board = game.board.copy()
+        while move not in game.valid_moves:
+            move = game.handle_other_input()
         game.move(move)
-        if np.array_equal(temp_board, game.board):
-            print("Invalid move. Try again.")
-            continue
         game.check_game_over()
-        game.spawn_tile()
 
 if __name__ == "__main__":
     main()
